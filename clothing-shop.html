@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Clothing Shop with Login & Registration</title>
+<style>
+  /* Reset & basics */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background: #f4f4f7;
+    color: #333;
+  }
+  nav {
+    background: #222;
+    padding: 15px 20px;
+    display: flex;
+    gap: 20px;
+  }
+  nav a {
+    color: #ddd;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  nav a.active, nav a:hover {
+    color: #fff;
+    border-bottom: 2px solid #fff;
+  }
+  .container {
+    max-width: 960px;
+    margin: 30px auto;
+    background: white;
+    padding: 20px 30px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    border-radius: 6px;
+  }
+  h2 {
+    margin-top: 0;
+  }
+  form input, form select, form button {
+    padding: 8px 12px;
+    margin: 8px 10px 15px 0;
+    font-size: 16px;
+    border-radius: 4px;
+    border: 1px solid #aaa;
+  }
+  form button {
+    background: #222;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  form button:hover {
+    background: #555;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+  }
+  th {
+    background: #eee;
+  }
+  .hidden {
+    display: none;
+  }
+  /* Login Modal */
+  #login-modal {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw; height: 100vh;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  #login-modal.hidden {
+    display: none;
+  }
+  #login-box {
+    background: white;
+    padding: 30px 40px;
+    border-radius: 8px;
+    width: 320px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    text-align: center;
+  }
+  #login-box h2 {
+    margin-bottom: 20px;
+  }
+  #login-box input {
+    width: 100%;
+    margin-bottom: 15px;
+  }
+  #login-error {
+    color: red;
+    margin-bottom: 10px;
+    height: 18px;
+  }
+  #toggle-forms {
+    color: blue;
+    text-decoration: underline;
+    cursor: pointer;
+    margin-top: 10px;
+    display: block;
+  }
+  #logout-btn {
+    margin-left: auto;
+    background: #444;
+    padding: 6px 12px;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+  #logout-btn:hover {
+    background: #666;
+  }
+</style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="login-modal">
+  <div id="login-box">
+    <h2 id="form-title">Login</h2>
+    <div id="login-error"></div>
+    <!-- Login Form -->
+    <form id="login-form">
+      <input type="text" id="login-username" placeholder="Username" required />
+      <input type="password" id="login-password" placeholder="Password" required />
+      <button type="submit">Log In</button>
+    </form>
+    <!-- Register Form -->
+    <form id="register-form" class="hidden">
+      <input type="text" id="register-username" placeholder="Username" required />
+      <input type="password" id="register-password" placeholder="Password" required />
+      <input type="password" id="register-password2" placeholder="Confirm Password" required />
+      <button type="submit">Register</button>
+    </form>
+    <span id="toggle-forms">Don't have an account? Register here</span>
+  </div>
+</div>
+
+<nav>
+  <a href="#" id="nav-dashboard" class="active">Dashboard</a>
+  <a href="#" id="nav-inventory">Inventory</a>
+  <a href="#" id="nav-sales">Sales</a>
+  <a href="#" id="nav-installments">Installments</a>
+  <button id="logout-btn" class="hidden">Logout</button>
+</nav>
+
+<div class="container">
+  
+  <!-- Dashboard -->
+  <section id="dashboard-section">
+    <h2>Welcome to Clothing Shop Dashboard</h2>
+    <p>Use the navigation above to manage your shop.</p>
+  </section>
+
+  <!-- Inventory -->
+  <section id="inventory-section" class="hidden">
+    <h2>Inventory Management</h2>
+    <form id="inventory-form">
+      <input type="text" id="product-name" placeholder="Product Name" required />
+      <input type="number" id="product-price" placeholder="Price" min="0" step="0.01" required />
+      <input type="number" id="product-quantity" placeholder="Quantity" min="0" required />
+      <button type="submit">Add Product</button>
+    </form>
+    <table id="inventory-table">
+      <thead>
+        <tr><th>Name</th><th>Price</th><th>Quantity</th></tr>
+      </thead>
+      <tbody>
+        <!-- Products added here dynamically -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Sales -->
+  <section id="sales-section" class="hidden">
+    <h2>Sales</h2>
+    <form id="sales-form">
+      <select id="sale-product" required>
+        <option value="">Select Product</option>
+      </select>
+      <input type="number" id="sale-quantity" placeholder="Quantity" min="1" required />
+      <button type="submit">Record Sale</button>
+    </form>
+    <table id="sales-table">
+      <thead>
+        <tr><th>Product</th><th>Quantity</th><th>Total Price</th></tr>
+      </thead>
+      <tbody>
+        <!-- Sales records here -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Installments -->
+  <section id="installments-section" class="hidden">
+    <h2>Installments</h2>
+    <form id="installments-form">
+      <input type="text" id="customer-name" placeholder="Customer Name" required />
+      <input type="number" id="total-amount" placeholder="Total Amount" min="0" step="0.01" required />
+      <input type="number" id="amount-paid" placeholder="Amount Paid" min="0" step="0.01" required />
+      <button type="submit">Add Installment</button>
+    </form>
+    <table id="installments-table">
+      <thead>
+        <tr><th>Customer</th><th>Total Amount</th><th>Amount Paid</th><th>Due Amount</th></tr>
+      </thead>
+      <tbody>
+        <!-- Installments here -->
+      </tbody>
+    </table>
+  </section>
+
+</div>
+
+<script>
+  // --- USER MANAGEMENT WITH LOCALSTORAGE ---
+  const USERS_KEY = 'clothing-shop-users';
+
+  // Load users or initialize with default admin user
+  function loadUsers() {
+    const usersStr = localStorage.getItem(USERS_KEY);
+    if (usersStr) {
+      return JSON.parse(usersStr);
+    } else {
+      // default user
+      const defaultUsers = [{ username: 'admin', password: 'password123' }];
+      localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers));
+      return defaultUsers;
+    }
+  }
+  function saveUsers(users) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
+
+  // Check if logged in user is saved in localStorage
+  const LOGGED_IN_USER_KEY = 'clothing-shop-loggedin';
+  function setLoggedInUser(username) {
+    localStorage.setItem(LOGGED_IN_USER_KEY, username);
+  }
+  function getLoggedInUser() {
+    return localStorage.getItem(LOGGED_IN_USER_KEY);
+  }
+  function logoutUser() {
+    localStorage.removeItem(LOGGED_IN_USER_KEY);
+  }
+
+  // --- DOM ELEMENTS ---
+  const loginModal = document.getElementById('login-modal');
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const toggleFormsSpan = document.getElementById('toggle-forms');
+  const formTitle = document.getElementById('form-title');
+  const loginError = document.getElementById('login-error');
+  const logoutBtn = document.getElementById('logout-btn');
+
+  // Nav & sections
+  const navLinks = document.querySelectorAll('nav a');
+  const sections = {
+    dashboard: document.getElementById('dashboard-section'),
+    inventory: document.getElementById('inventory-section'),
+    sales: document.getElementById('sales-section'),
+    installments: document.getElementById('installments-section')
+  };
+
+  // Show/hide nav and logout button on login/logout
+  function setLoggedInState(username) {
+    loginModal.classList.add('hidden');
+    logoutBtn.classList.remove('hidden');
+    navLinks.forEach(link => {
+      link.style.pointerEvents = 'auto';
+      link.style.color = '';
+    });
+    // Show welcome message in dashboard
+    sections.dashboard.querySelector('p').textContent = `Welcome, ${username}! Use the navigation above to manage your shop.`;
+  }
+  function setLoggedOutState() {
+    loginModal.classList.remove('hidden');
+    logoutBtn.classList.add('hidden');
+    navLinks.forEach(link => {
+      link.style.pointerEvents = 'none';
+      link.style.color = '#999';
+    });
+    // Reset dashboard message
+    sections.dashboard.querySelector('p').textContent = 'Use the navigation above to manage your shop.';
+    // Reset active nav and show dashboard section
+    navLinks.forEach(l => l.classList.remove('active'));
+    navLinks[0].classList.add('active');
+    showSection('dashboard');
+  }
+
+  // Toggle between Login and Register forms
+  let showingLogin = true;
+  toggleFormsSpan.addEventListener('click', () => {
+    loginError.textContent = '';
+    if (showingLogin) {
+      loginForm.classList.add('hidden');
+      registerForm.classList.remove('hidden');
+      formTitle.textContent = 'Register';
+      toggleFormsSpan.textContent = 'Already have an account? Login here';
+      showingLogin = false;
+    } else {
+      registerForm.classList.add('hidden');
+      loginForm.classList.remove('hidden');
+      formTitle.textContent = 'Login';
+      toggleFormsSpan.textContent = "Don't have an account? Register here";
+      showingLogin = true;
+    }
+  });
+
+  // Handle Login Submit
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    loginError.textContent = '';
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value;
+    const users = loadUsers();
+    const foundUser = users.find(u => u.username === username && u.password === password);
+    if (foundUser) {
+      setLoggedInUser(username);
+      setLoggedInState(username);
+      loginForm.reset();
+    } else {
+      loginError.textContent = 'Invalid username or password!';
+    }
+  });
+
+  // Handle Registration Submit
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    loginError.textContent = '';
+    const username = document.getElementById('register-username').value.trim();
+    const password = document.getElementById('register-password').value;
+    const password2 = document.getElementById('register-password2').value;
+
+    if (password !== password2) {
+      loginError.textContent = 'Passwords do not match!';
+      return;
+    }
+    let users = loadUsers();
+    if (users.some(u => u.username === username)) {
+      loginError.textContent = 'Username already taken!';
+      return;
+    }
+    users.push({ username, password });
+    saveUsers(users);
+    alert('Registration successful! Please login.');
+    // Switch back to login form
+    registerForm.reset();
+    registerForm.classList.add('hidden');
+    loginForm.classList.remove('hidden');
+    formTitle.textContent = 'Login';
+    toggleFormsSpan.textContent = "Don't have an account? Register here";
+    showingLogin = true;
+  });
+
+  // Logout button
+  logoutBtn.addEventListener('click', () => {
+    logoutUser();
+    setLoggedOutState();
+  });
+
+  // On page load, check if user logged in
+  window.addEventListener('load', () => {
+    const loggedInUser = getLoggedInUser();
+    if (loggedInUser) {
+      setLoggedInState(loggedInUser);
+    } else {
+      setLoggedOutState();
+    }
+  });
+
+  // --- NAVIGATION ---
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      if (link.classList.contains('active')) return;
+      navLinks.forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+      if (link.id === 'nav-dashboard') showSection('dashboard');
+      else if (link.id === 'nav-inventory') showSection('inventory');
+      else if (link.id === 'nav-sales') showSection('sales');
+      else if (link.id === 'nav-installments') showSection('installments');
+    });
+  });
+
+  function showSection(sectionName) {
+    for (const key in sections) {
+      if (key === sectionName) sections[key].classList.remove('hidden');
+      else sections[key].classList.add('hidden');
+    }
+  }
+
+  // --- INVENTORY MANAGEMENT ---
+  const inventoryForm = document.getElementById('inventory-form');
+  const inventoryTableBody = document.querySelector('#inventory-table tbody');
+  const saleProductSelect = document.getElementById('sale-product');
+
+  let inventory = JSON.parse(localStorage.getItem('clothing-shop-inventory')) || [];
+
+  function saveInventory() {
+    localStorage.setItem('clothing-shop-inventory', JSON.stringify(inventory));
+  }
+
+  function renderInventory() {
+    inventoryTableBody.innerHTML = '';
+    saleProductSelect.innerHTML = '<option value="">Select Product</option>';
+    inventory.forEach((item, index) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${item.name}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td>${item.quantity}</td>
+      `;
+      inventoryTableBody.appendChild(row);
+      if(item.quantity > 0){
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${item.name} ($${item.price.toFixed(2)}) - Qty: ${item.quantity}`;
+        saleProductSelect.appendChild(option);
+      }
+    });
+  }
+
+  inventoryForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('product-name').value.trim();
+    const price = parseFloat(document.getElementById('product-price').value);
+    const quantity = parseInt(document.getElementById('product-quantity').value);
+    if (name && price >= 0 && quantity >= 0) {
+      // Check if product exists, update quantity if yes
+      const existing = inventory.find(item => item.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        existing.quantity += quantity;
+        existing.price = price; // update price too
+      } else {
+        inventory.push({ name, price, quantity });
+      }
+      saveInventory();
+      renderInventory();
+      inventoryForm.reset();
+      alert('Product added/updated!');
+    } else {
+      alert('Please fill all fields correctly.');
+    }
+  });
+
+  // --- SALES ---
+  const salesForm = document.getElementById('sales-form');
+  const salesTableBody = document.querySelector('#sales-table tbody');
+
+  let sales = JSON.parse(localStorage.getItem('clothing-shop-sales')) || [];
+
+  function saveSales() {
+    localStorage.setItem('clothing-shop-sales', JSON.stringify(sales));
+  }
+  function renderSales() {
+    salesTableBody.innerHTML = '';
+    sales.forEach(sale => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${sale.productName}</td>
+        <td>${sale.quantity}</td>
+        <td>$${sale.totalPrice.toFixed(2)}</td>
+      `;
+      salesTableBody.appendChild(row);
+    });
+  }
+
+  salesForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const productIndex = saleProductSelect.value;
+    const quantity = parseInt(document.getElementById('sale-quantity').value);
+    if (productIndex === '') {
+      alert('Please select a product.');
+      return;
+    }
+    if (quantity <= 0) {
+      alert('Quantity must be greater than zero.');
+      return;
+    }
+    const product = inventory[productIndex];
+    if (product.quantity < quantity) {
+      alert('Not enough stock!');
+      return;
+    }
+    product.quantity -= quantity;
+    const totalPrice = product.price * quantity;
+    sales.push({ productName: product.name, quantity, totalPrice });
+    saveSales();
+    saveInventory();
+    renderSales();
+    renderInventory();
+    salesForm.reset();
+    alert('Sale recorded!');
+  });
+
+  // --- INSTALLMENTS ---
+  const installmentsForm = document.getElementById('installments-form');
+  const installmentsTableBody = document.querySelector('#installments-table tbody');
+
+  let installments = JSON.parse(localStorage.getItem('clothing-shop-installments')) || [];
+
+  function saveInstallments() {
+    localStorage.setItem('clothing-shop-installments', JSON.stringify(installments));
+  }
+
+  function renderInstallments() {
+    installmentsTableBody.innerHTML = '';
+    installments.forEach(inst => {
+      const due = inst.totalAmount - inst.amountPaid;
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${inst.customerName}</td>
+        <td>$${inst.totalAmount.toFixed(2)}</td>
+        <td>$${inst.amountPaid.toFixed(2)}</td>
+        <td>$${due.toFixed(2)}</td>
+      `;
+      installmentsTableBody.appendChild(row);
+    });
+  }
+
+  installmentsForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const customerName = document.getElementById('customer-name').value.trim();
+    const totalAmount = parseFloat(document.getElementById('total-amount').value);
+    const amountPaid = parseFloat(document.getElementById('amount-paid').value);
+    if (!customerName || totalAmount < 0 || amountPaid < 0) {
+      alert('Please enter valid values.');
+      return;
+    }
+    if (amountPaid > totalAmount) {
+      alert('Amount paid cannot exceed total amount.');
+      return;
+    }
+    installments.push({ customerName, totalAmount, amountPaid });
+    saveInstallments();
+    renderInstallments();
+    installmentsForm.reset();
+    alert('Installment added!');
+  });
+
+  // Initial rendering of data on load
+  renderInventory();
+  renderSales();
+  renderInstallments();
+
+</script>
+
+</body>
+</html>
